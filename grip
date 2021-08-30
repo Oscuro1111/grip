@@ -1,0 +1,43 @@
+#!/bin/bash
+
+var=$(grep  -rnIE "$1*\(" ./mpm-server_lib/src/ |xargs  -I {} echo -e "{}"|awk -F":" '{print ""$1":"$2""}'|xargs)
+
+files=""
+lines=""
+temp=""
+count=0;
+len=0;
+
+for ii in $(echo $var)
+do
+	((len=len+1))
+done
+((len=len-1))
+
+#vim filea fileb filec -c ':10|:bu 2|:100|:bu 3|:200|:rewind'
+for i in $(echo $var)
+do
+	temp=$(echo $i|awk -F":" '{print ""$1""}')
+	files="$files $temp"
+	temp=$(echo $i|awk -F":" '{print ""$2""}')
+
+	if [[ -z $lines ]]
+	then
+		lines="$count|:$temp|:bu"
+	else
+
+		if [[ $count -eq $len ]]
+		then
+			lines="$lines $count|:$temp|:rewind"
+		else
+			lines="$lines $count|:$temp|:bu"
+
+		fi
+	fi
+
+	((count=count+1)) 
+done
+
+echo $files $lines
+
+vim $files -c "$lines"
